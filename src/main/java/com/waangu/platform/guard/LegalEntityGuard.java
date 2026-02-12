@@ -1,6 +1,6 @@
 package com.waangu.platform.guard;
 
-import com.waangu.platform.annotation.FinancialEndpoint;
+// import com.waangu.platform.annotation.FinancialEndpoint;
 import com.waangu.platform.tenant.TenantContext;
 import com.waangu.platform.tenant.TenantContextHolder;
 import org.aspectj.lang.ProceedingJoinPoint;

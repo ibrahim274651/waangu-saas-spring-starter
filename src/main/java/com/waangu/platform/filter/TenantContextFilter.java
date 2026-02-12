@@ -7,7 +7,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -25,14 +24,13 @@ import java.util.UUID;
  */
 public class TenantContextFilter extends OncePerRequestFilter {
 
-    @Nullable
     private final String moduleId;
 
     public TenantContextFilter() {
         this.moduleId = null;
     }
 
-    public TenantContextFilter(@Nullable String moduleId) {
+    public TenantContextFilter(String moduleId) {
         this.moduleId = moduleId;
     }
 
