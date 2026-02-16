@@ -10,7 +10,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * RBAC helper for copilot and endpoints (chagpt).
+ * Utility class for role-based access control (RBAC) enforcement.
+ * <p>
+ * Provides helper methods to check user roles from the Spring Security context.
+ * Roles are expected to follow the "ROLE_" prefix convention.
+ * </p>
  */
 public final class Rbac {
 

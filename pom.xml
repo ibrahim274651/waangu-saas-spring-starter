@@ -13,7 +13,7 @@
 	<artifactId>waangu-saas-spring-starter</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Waangu 360 SaaS Spring Boot Starter</name>
-  	<description>Multi-tenant hybrid starter for Waangu 360 ERP microservices (chagpt)</description>
+  	<description>Multi-tenant hybrid starter for Waangu 360 ERP microservices</description>
 	<url/>
 	<licenses>
 		<license/>

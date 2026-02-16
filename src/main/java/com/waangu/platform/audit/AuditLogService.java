@@ -12,7 +12,23 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Append-only audit log with hash chaining (chagpt — OPC / ISA ready).
+ * Service for writing append-only audit logs with cryptographic hash chaining.
+ * <p>
+ * Provides tamper-evident audit trails by linking each log entry to the previous one
+ * via SHA-256 hash chains. This ensures compliance with financial regulations and
+ * standards such as OPC (Ordonnance sur la Protection des Consommateurs) and ISA
+ * (International Standards on Auditing).
+ * </p>
+ * <p>
+ * Each audit entry includes:
+ * <ul>
+ *   <li>Tenant and legal entity isolation</li>
+ *   <li>Actor user identification</li>
+ *   <li>Action and entity details</li>
+ *   <li>Correlation ID for request tracing</li>
+ *   <li>Hash chain linking (prev_hash → curr_hash)</li>
+ * </ul>
+ * </p>
  */
 @Service
 public class AuditLogService {

@@ -9,7 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Standard /copilot/intents endpoint (chagpt). Override or extend intents in your module.
+ * Standard REST controller for AI copilot intent discovery.
+ * <p>
+ * Exposes the /copilot/intents endpoint that returns available intents for the module.
+ * Consuming applications can override {@link #defaultIntents()} in a @Configuration
+ * to provide module-specific intents.
+ * </p>
  */
 @RestController
 @RequestMapping("/copilot")

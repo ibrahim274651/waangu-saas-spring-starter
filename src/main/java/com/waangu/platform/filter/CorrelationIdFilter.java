@@ -12,7 +12,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Sets X-Correlation-Id and MDC for traceability (chagpt).
+ * Filter that ensures every request has a correlation ID for distributed tracing.
+ * <p>
+ * If the incoming request contains an X-Correlation-Id header, it is used; otherwise,
+ * a new UUID is generated. The correlation ID is added to the SLF4J MDC for logging
+ * and included in the response headers.
+ * </p>
  */
 public class CorrelationIdFilter extends OncePerRequestFilter {
 

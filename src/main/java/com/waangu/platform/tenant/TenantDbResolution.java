@@ -1,7 +1,11 @@
 package com.waangu.platform.tenant;
 
 /**
- * DB resolution for a tenant (from Tenant Registry) — chagpt.
+ * Record representing database resolution information for a tenant.
+ * <p>
+ * Returned by {@link TenantRegistryClient} to provide connection details
+ * based on the tenant's isolation mode.
+ * </p>
  */
 public record TenantDbResolution(
     String mode,           // POOLED | SCHEMA | DEDICATED_DB

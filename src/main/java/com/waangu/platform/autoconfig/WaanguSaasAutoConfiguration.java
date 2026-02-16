@@ -11,7 +11,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 
 /**
- * Auto-configuration for Waangu 360 SaaS multi-tenant starter (chagpt).
+ * Spring Boot auto-configuration for Waangu 360 SaaS multi-tenant infrastructure.
+ * <p>
+ * Automatically registers and configures essential filters in the correct order:
+ * <ol>
+ *   <li>CorrelationIdFilter (HIGHEST_PRECEDENCE) - Ensures correlation ID on all requests</li>
+ *   <li>TenantContextFilter (HIGHEST_PRECEDENCE + 10) - Extracts and validates tenant context from JWT</li>
+ *   <li>ForbiddenBodyFieldsFilter (HIGHEST_PRECEDENCE + 20) - Blocks forbidden fields in request bodies</li>
+ * </ol>
+ * </p>
  */
 @AutoConfiguration
 @ConditionalOnWebApplication

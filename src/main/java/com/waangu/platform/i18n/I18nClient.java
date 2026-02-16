@@ -3,7 +3,12 @@ package com.waangu.platform.i18n;
 import java.util.Optional;
 
 /**
- * Translation service client (chagpt). Implemented by HttpI18nClient.
+ * Client interface for internationalization (i18n) translation services.
+ * <p>
+ * Provides methods to retrieve localized messages based on message keys and locale.
+ * </p>
+ *
+ * @see com.waangu.platform.i18n.HttpI18nClient
  */
 public interface I18nClient {
 

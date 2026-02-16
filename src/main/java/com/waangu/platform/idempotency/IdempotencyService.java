@@ -17,7 +17,22 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
- * Idempotency for critical write operations (chagpt — prevent double-spend).
+ * Service for ensuring idempotency of critical write operations.
+ * <p>
+ * Prevents duplicate processing of financial transactions (double-spend prevention)
+ * by tracking idempotency keys and request hashes. If the same key is reused with
+ * a different request payload, a conflict error is returned.
+ * </p>
+ * <p>
+ * Usage pattern:
+ * <pre>{@code
+ * idempotencyService.withIdempotency(
+ *     idempotencyKey,
+ *     requestHash,
+ *     () -> performFinancialOperation()
+ * );
+ * }</pre>
+ * </p>
  */
 @Service
 public class IdempotencyService {

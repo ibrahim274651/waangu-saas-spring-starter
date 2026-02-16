@@ -17,9 +17,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 /**
- * Rejects requests whose JSON body contains forbidden fields (tenant_id,
- * legal_entity_id).
- * chagpt — prevents client from injecting tenant/legal entity.
+ * Security filter that rejects requests containing forbidden fields in the JSON body.
+ * <p>
+ * Prevents clients from injecting tenant_id, legal_entity_id, or country_code in request
+ * payloads. These values must come exclusively from the validated JWT token to ensure
+ * proper tenant isolation and prevent privilege escalation attacks.
+ * </p>
+ * <p>
+ * Forbidden fields (both snake_case and camelCase):
+ * <ul>
+ *   <li>tenant_id / tenantId</li>
+ *   <li>legal_entity_id / legalEntityId</li>
+ *   <li>country_code / countryCode</li>
+ * </ul>
+ * </p>
  */
 public class ForbiddenBodyFieldsFilter extends OncePerRequestFilter {
 

@@ -10,7 +10,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Outbox pattern for reliable event publishing (chagpt).
+ * Service implementing the transactional outbox pattern for reliable event publishing.
+ * <p>
+ * Events are written to the outbox table within the same transaction as the business
+ * operation, ensuring atomicity. A separate process polls the outbox table and publishes
+ * events to the message broker, guaranteeing at-least-once delivery.
+ * </p>
  */
 @Service
 public class OutboxService {

@@ -19,8 +19,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Extracts tenant context from JWT and enforces SaaS contract (billing, enabled_modules).
- * chagpt — Waangu 360 multi-tenant hybrid.
+ * Filter that extracts and validates tenant context from JWT tokens.
+ * <p>
+ * Enforces the SaaS contract by validating:
+ * <ul>
+ *   <li>Tenant ID and mode (POOLED/SCHEMA/DEDICATED_DB)</li>
+ *   <li>Billing status (ACTIVE or TRIAL)</li>
+ *   <li>Module enablement (if moduleId is configured)</li>
+ *   <li>Country code and locale</li>
+ *   <li>Legal entity ID (required for write operations)</li>
+ * </ul>
+ * </p>
+ * <p>
+ * The extracted context is stored in {@link com.waangu.platform.tenant.TenantContextHolder}
+ * for the duration of the request and automatically cleared afterward.
+ * </p>
  */
 public class TenantContextFilter extends OncePerRequestFilter {
 
