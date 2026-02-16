@@ -2,6 +2,7 @@ package com.waangu.platform.db;
 
 import com.waangu.platform.tenant.TenantContext;
 import com.waangu.platform.tenant.TenantContextHolder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
  * </p>
  */
 @Component
+@ConditionalOnBean(JdbcTemplate.class)
 public class DbSessionInitializer {
 
     private final JdbcTemplate jdbcTemplate;

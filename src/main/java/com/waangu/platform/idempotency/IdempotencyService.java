@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waangu.platform.tenant.TenantContext;
 import com.waangu.platform.tenant.TenantContextHolder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import java.util.function.Supplier;
  * </p>
  */
 @Service
+@ConditionalOnBean(JdbcTemplate.class)
 public class IdempotencyService {
 
     private final JdbcTemplate jdbc;

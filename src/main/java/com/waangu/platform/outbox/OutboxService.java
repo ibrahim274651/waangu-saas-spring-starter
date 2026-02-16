@@ -3,6 +3,7 @@ package com.waangu.platform.outbox;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waangu.platform.tenant.TenantContext;
 import com.waangu.platform.tenant.TenantContextHolder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
  * </p>
  */
 @Service
+@ConditionalOnBean(JdbcTemplate.class)
 public class OutboxService {
 
     private final JdbcTemplate jdbc;

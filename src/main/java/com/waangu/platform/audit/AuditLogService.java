@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waangu.platform.tenant.TenantContext;
 import com.waangu.platform.tenant.TenantContextHolder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ import java.util.UUID;
  * </p>
  */
 @Service
+@ConditionalOnBean(JdbcTemplate.class)
 public class AuditLogService {
 
     private final JdbcTemplate jdbc;
