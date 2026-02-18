@@ -1,0 +1,59 @@
+{
+  "$schema": "./src/main/resources/manifest.schema.json",
+  "moduleId": "ERP_STOCK",
+  "version": "1.0.0",
+  "type": "CORE",
+  "displayName": {
+    "en": "Stock Management",
+    "fr": "Gestion des Stocks"
+  },
+  "description": {
+    "en": "Core inventory and stock management module",
+    "fr": "Module principal de gestion des stocks et inventaires"
+  },
+  "dependencies": [],
+  "permissions": [
+    "stock:read",
+    "stock:write",
+    "stock:transfer"
+  ],
+  "endpoints": [
+    {
+      "path": "/api/v1/products",
+      "methods": ["GET", "POST", "PUT", "DELETE"],
+      "requiresLegalEntity": true,
+      "idempotent": true
+    },
+    {
+      "path": "/api/v1/stock-movements",
+      "methods": ["GET", "POST"],
+      "requiresLegalEntity": true,
+      "idempotent": true
+    },
+    {
+      "path": "/api/v1/warehouses",
+      "methods": ["GET", "POST", "PUT"],
+      "requiresLegalEntity": true
+    }
+  ],
+  "events": {
+    "publishes": [
+      "stock.item_created",
+      "stock.item_updated",
+      "stock.movement_recorded",
+      "stock.low_threshold_alert"
+    ],
+    "subscribes": [
+      "sales.order_confirmed",
+      "purchase.receipt_validated"
+    ]
+  },
+  "billing": {
+    "model": "FREE",
+    "trialDays": 0
+  },
+  "healthCheck": {
+    "endpoint": "/actuator/health",
+    "intervalSeconds": 30
+  }
+}

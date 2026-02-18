@@ -1,13 +1,18 @@
 package com.waangu.platform.autoconfig;
 
+import com.waangu.platform.config.SecurityConfig;
 import com.waangu.platform.filter.CorrelationIdFilter;
 import com.waangu.platform.filter.ForbiddenBodyFieldsFilter;
 import com.waangu.platform.filter.TenantContextFilter;
+import com.waangu.platform.guard.PiiGuard;
+import com.waangu.platform.support.SupportContextController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 
 /**
@@ -15,14 +20,23 @@ import org.springframework.core.Ordered;
  * <p>
  * Automatically registers and configures essential filters in the correct order:
  * <ol>
- *   <li>CorrelationIdFilter (HIGHEST_PRECEDENCE) - Ensures correlation ID on all requests</li>
+ *   <li>CorrelationIdFilter (HIGHEST_PRECEDENCE) - Ensures correlation/trace ID on all requests</li>
  *   <li>TenantContextFilter (HIGHEST_PRECEDENCE + 10) - Extracts and validates tenant context from JWT</li>
  *   <li>ForbiddenBodyFieldsFilter (HIGHEST_PRECEDENCE + 20) - Blocks forbidden fields in request bodies</li>
  * </ol>
  * </p>
+ * <p>
+ * Also provides:
+ * <ul>
+ *   <li>SecurityConfig - HSTS, CSP, and OAuth2 JWT resource server</li>
+ *   <li>PiiGuard - Prevents PII leakage in support context</li>
+ *   <li>SupportContextController - Chat support integration endpoint</li>
+ * </ul>
+ * </p>
  */
 @AutoConfiguration
 @ConditionalOnWebApplication
+@Import(SecurityConfig.class)
 public class WaanguSaasAutoConfiguration {
 
     @Bean
@@ -53,5 +67,17 @@ public class WaanguSaasAutoConfiguration {
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 20);
         bean.addUrlPatterns("/api/*");
         return bean;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public PiiGuard piiGuard() {
+        return new PiiGuard();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SupportContextController supportContextController(PiiGuard piiGuard) {
+        return new SupportContextController(piiGuard);
     }
 }

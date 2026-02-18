@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://waangu.com/schemas/manifest.schema.json",
+  "title": "Waangu 360 Module Manifest",
+  "description": "Schema for validating Waangu 360 SaaS module manifest files",
+  "type": "object",
+  "required": ["moduleId", "version", "type", "dependencies"],
+  "properties": {
+    "moduleId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,49}$",
+      "description": "Unique module identifier (e.g., ERP_STOCK, ERP_TREASURY)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?$",
+      "description": "Semantic version (e.g., 1.0.0, 2.1.0-beta)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["CORE", "PLUGIN"],
+      "description": "Module type: CORE (always active) or PLUGIN (activatable)"
+    },
+    "displayName": {
+      "type": "object",
+      "description": "Localized display names",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "examples": [
+        {
+          "en": "Stock Management",
+          "fr": "Gestion des Stocks"
+        }
+      ]
+    },
+    "description": {
+      "type": "object",
+      "description": "Localized descriptions",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["moduleId"],
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,49}$"
+          },
+          "minVersion": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "optional": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "List of required module dependencies"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$"
+      },
+      "description": "Required permissions (e.g., stock:read, treasury:write)"
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "methods"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/api/.*$"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+            }
+          },
+          "requiresLegalEntity": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, requires legal_entity_id in context"
+          },
+          "idempotent": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, requires idempotency key for mutations"
+          }
+        }
+      },
+      "description": "Exposed REST endpoints"
+    },
+    "events": {
+      "type": "object",
+      "properties": {
+        "publishes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+          },
+          "description": "Events this module publishes (e.g., stock.item_created)"
+        },
+        "subscribes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+          },
+          "description": "Events this module subscribes to"
+        }
+      }
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": ["FREE", "FLAT", "USAGE", "TIERED"],
+          "description": "Billing model for this module"
+        },
+        "trialDays": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 90,
+          "description": "Trial period in days"
+        }
+      }
+    },
+    "healthCheck": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "default": "/actuator/health"
+        },
+        "intervalSeconds": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 300,
+          "default": 30
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

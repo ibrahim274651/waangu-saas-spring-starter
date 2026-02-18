@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.2</version>
+		<version>3.4.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	
@@ -22,11 +22,18 @@
 		<developer/>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:https://github.com/ibrahim274651/waangu-saas-spring-starter.git</connection>
+		<developerConnection>scm:git:https://github.com/ibrahim274651/waangu-saas-spring-starter.git</developerConnection>
+		<url>https://github.com/ibrahim274651/waangu-saas-spring-starter</url>
 	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/ibrahim274651/waangu-saas-spring-starter</url>
+		</repository>
+	</distributionManagement>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
@@ -51,12 +58,15 @@
     </dependency>
 
     <!-- AOP (LegalEntityGuard @Aspect) -->
-    <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-aop</artifactId>
-        <version>3.5.10</version>
-        <scope>compile</scope>
+    </dependency>
+    
+    <!-- Security (SecurityConfig with HSTS/CSP) -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
       
 
@@ -131,17 +141,30 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+			<!-- NOTE: spring-boot-maven-plugin removed - this is a library, not a bootable app -->
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
