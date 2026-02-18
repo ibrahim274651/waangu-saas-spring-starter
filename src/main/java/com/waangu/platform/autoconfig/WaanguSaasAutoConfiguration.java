@@ -48,12 +48,14 @@ public class WaanguSaasAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "tenantContextFilter")
     public TenantContextFilter tenantContextFilter(
             @Value("${waangu.module-id:}") String moduleId) {
         return new TenantContextFilter(moduleId.isBlank() ? null : moduleId);
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "tenantContextFilterRegistration")
     public FilterRegistrationBean<TenantContextFilter> tenantContextFilterRegistration(TenantContextFilter filter) {
         FilterRegistrationBean<TenantContextFilter> bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
