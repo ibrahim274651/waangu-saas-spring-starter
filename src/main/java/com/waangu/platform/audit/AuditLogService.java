@@ -4,10 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waangu.platform.tenant.TenantContext;
 import com.waangu.platform.tenant.TenantContextHolder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import com.waangu.platform.util.UuidUtils;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.UUID;
@@ -35,32 +39,41 @@ import java.util.UUID;
 @ConditionalOnBean(JdbcTemplate.class)
 public class AuditLogService {
 
-    private final JdbcTemplate jdbc;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Logger log = LoggerFactory.getLogger(AuditLogService.class);
 
-    public AuditLogService(JdbcTemplate jdbc) {
+    private final JdbcTemplate jdbc;
+    private final ObjectMapper objectMapper;
+
+    public AuditLogService(JdbcTemplate jdbc, ObjectMapper objectMapper) {
         this.jdbc = jdbc;
+        this.objectMapper = objectMapper;
     }
 
+    @Transactional
     public void write(String action, String entityType, UUID entityId, Map<String, Object> payload) {
         TenantContext ctx = TenantContextHolder.get();
-        if (ctx == null) throw new IllegalStateException("Missing TenantContext");
+        if (ctx == null) {
+            log.error("Attempted to write audit log without TenantContext");
+            throw new IllegalStateException("Missing TenantContext");
+        }
 
-        UUID tenantId = UUID.fromString(ctx.tenantId());
-        UUID legalEntityId = ctx.legalEntityId() != null && !ctx.legalEntityId().isBlank()
-                ? UUID.fromString(ctx.legalEntityId()) : tenantId;
-        UUID actorUserId = ctx.userId() != null && !ctx.userId().isBlank()
-                ? UUID.fromString(ctx.userId()) : UUID.randomUUID();
+        log.debug("Writing audit log: action={}, entityType={}, entityId={}", action, entityType, entityId);
+
+        UUID tenantId = UuidUtils.parseStrict(ctx.tenantId(), "tenantId");
+        UUID legalEntityId = UuidUtils.parseOrDefault(ctx.legalEntityId(), tenantId);
+        UUID actorUserId = UuidUtils.parseOrGenerate(ctx.userId());
 
         String payloadJson;
         try {
             payloadJson = objectMapper.writeValueAsString(payload != null ? payload : Map.of());
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            log.error("Failed to serialize audit payload: {}", e.getMessage());
+            throw new AuditSerializationException("Failed to serialize audit payload", e);
         }
 
+        // Use FOR UPDATE to prevent race conditions in hash chain
         var rows = jdbc.queryForList(
-                "SELECT curr_hash FROM audit_log WHERE tenant_id = ? AND legal_entity_id = ? ORDER BY occurred_at DESC LIMIT 1",
+                "SELECT curr_hash FROM audit_log WHERE tenant_id = ? AND legal_entity_id = ? ORDER BY occurred_at DESC LIMIT 1 FOR UPDATE",
                 tenantId, legalEntityId
         );
         String prevHash = rows.isEmpty() ? null : (String) rows.get(0).get("curr_hash");
@@ -76,5 +89,16 @@ public class AuditLogService {
                 UUID.randomUUID(), tenantId, legalEntityId, actorUserId, action, entityType, entityId,
                 ctx.correlationId(), payloadJson, prevHash, currHash
         );
+
+        log.info("Audit log written: action={}, entityType={}, tenantId={}", action, entityType, tenantId);
+    }
+
+    /**
+     * Exception thrown when audit payload serialization fails.
+     */
+    public static class AuditSerializationException extends RuntimeException {
+        public AuditSerializationException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }
