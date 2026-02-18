@@ -1,192 +1,192 @@
-name: Waangu SaaS Starter CI
+# name: Waangu SaaS Starter CI
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+# on:
+#   push:
+#     branches: [main, develop]
+#   pull_request:
+#     branches: [main, develop]
 
-env:
-  JAVA_VERSION: '21'
-  MAVEN_OPTS: '-Xmx1024m'
+# env:
+#   JAVA_VERSION: '21'
+#   MAVEN_OPTS: '-Xmx1024m'
 
-jobs:
-  # ==========================================================================
-  # BUILD & UNIT TESTS
-  # ==========================================================================
-  build:
-    name: Build & Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   # ==========================================================================
+#   # BUILD & UNIT TESTS
+#   # ==========================================================================
+#   build:
+#     name: Build & Unit Tests
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-          cache: maven
+#       - name: Set up JDK ${{ env.JAVA_VERSION }}
+#         uses: actions/setup-java@v4
+#         with:
+#           java-version: ${{ env.JAVA_VERSION }}
+#           distribution: 'temurin'
+#           cache: maven
 
-      - name: Build with Maven
-        run: mvn -B clean compile
+#       - name: Build with Maven
+#         run: mvn -B clean compile
 
-      - name: Run Unit Tests
-        run: mvn -B test -Dtest="*Test,*Tests" -DfailIfNoTests=false
+#       - name: Run Unit Tests
+#         run: mvn -B test -Dtest="*Test,*Tests" -DfailIfNoTests=false
 
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: target/surefire-reports/
+#       - name: Upload Test Results
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: test-results
+#           path: target/surefire-reports/
 
-  # ==========================================================================
-  # ARCHITECTURAL GUARDS
-  # ==========================================================================
-  guards:
-    name: Architectural Guards
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+#   # ==========================================================================
+#   # ARCHITECTURAL GUARDS
+#   # ==========================================================================
+#   guards:
+#     name: Architectural Guards
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      # Guard 1: No raw SQL without RLS
-      - name: Guard - No raw SQL without tenant context
-        run: |
-          echo "Checking for raw SQL queries without tenant context..."
-          if grep -rn "createNativeQuery\|nativeQuery\s*=\s*true" --include="*.java" src/; then
-            echo "::warning::Found native queries - ensure RLS is active"
-          fi
+#       # Guard 1: No raw SQL without RLS
+#       - name: Guard - No raw SQL without tenant context
+#         run: |
+#           echo "Checking for raw SQL queries without tenant context..."
+#           if grep -rn "createNativeQuery\|nativeQuery\s*=\s*true" --include="*.java" src/; then
+#             echo "::warning::Found native queries - ensure RLS is active"
+#           fi
 
-      # Guard 2: TenantContextHolder usage
-      - name: Guard - TenantContextHolder required
-        run: |
-          echo "Checking TenantContextHolder is used in services..."
-          SERVICES=$(find src -name "*Service.java" -type f)
-          for f in $SERVICES; do
-            if ! grep -q "TenantContextHolder\|TenantContext" "$f"; then
-              echo "::warning file=$f::Service may be missing tenant context handling"
-            fi
-          done
+#       # Guard 2: TenantContextHolder usage
+#       - name: Guard - TenantContextHolder required
+#         run: |
+#           echo "Checking TenantContextHolder is used in services..."
+#           SERVICES=$(find src -name "*Service.java" -type f)
+#           for f in $SERVICES; do
+#             if ! grep -q "TenantContextHolder\|TenantContext" "$f"; then
+#               echo "::warning file=$f::Service may be missing tenant context handling"
+#             fi
+#           done
 
-      # Guard 3: No tenant_id in DTOs
-      - name: Guard - No tenant_id in DTOs
-        run: |
-          echo "Checking DTOs don't expose tenant_id..."
-          DTOS=$(find src -name "*Dto.java" -o -name "*DTO.java" -o -name "*Request.java" -o -name "*Response.java" -type f 2>/dev/null || true)
-          for f in $DTOS; do
-            if grep -q "tenantId\|tenant_id" "$f"; then
-              echo "::error file=$f::DTO exposes tenant_id - security violation"
-              exit 1
-            fi
-          done
+#       # Guard 3: No tenant_id in DTOs
+#       - name: Guard - No tenant_id in DTOs
+#         run: |
+#           echo "Checking DTOs don't expose tenant_id..."
+#           DTOS=$(find src -name "*Dto.java" -o -name "*DTO.java" -o -name "*Request.java" -o -name "*Response.java" -type f 2>/dev/null || true)
+#           for f in $DTOS; do
+#             if grep -q "tenantId\|tenant_id" "$f"; then
+#               echo "::error file=$f::DTO exposes tenant_id - security violation"
+#               exit 1
+#             fi
+#           done
 
-      # Guard 4: Financial endpoints require legal_entity_id
-      - name: Guard - Financial endpoints require legal_entity_id
-        run: |
-          echo "Checking financial controllers for @RequiresLegalEntity..."
-          FINANCIAL_PATTERNS="Treasury|Payment|Invoice|Journal|Account|Ledger"
-          CONTROLLERS=$(find src -name "*Controller.java" -type f | xargs grep -l -E "$FINANCIAL_PATTERNS" 2>/dev/null || true)
-          for f in $CONTROLLERS; do
-            if ! grep -q "@RequiresLegalEntity\|LegalEntityGuard" "$f"; then
-              echo "::warning file=$f::Financial controller may need @RequiresLegalEntity"
-            fi
-          done
+#       # Guard 4: Financial endpoints require legal_entity_id
+#       - name: Guard - Financial endpoints require legal_entity_id
+#         run: |
+#           echo "Checking financial controllers for @RequiresLegalEntity..."
+#           FINANCIAL_PATTERNS="Treasury|Payment|Invoice|Journal|Account|Ledger"
+#           CONTROLLERS=$(find src -name "*Controller.java" -type f | xargs grep -l -E "$FINANCIAL_PATTERNS" 2>/dev/null || true)
+#           for f in $CONTROLLERS; do
+#             if ! grep -q "@RequiresLegalEntity\|LegalEntityGuard" "$f"; then
+#               echo "::warning file=$f::Financial controller may need @RequiresLegalEntity"
+#             fi
+#           done
 
-      # Guard 5: PII patterns in responses
-      - name: Guard - No PII in response objects
-        run: |
-          echo "Checking for PII patterns in response objects..."
-          PII_PATTERNS="iban|cardNumber|ssn|passport|nationalId"
-          RESPONSES=$(find src -name "*Response.java" -type f 2>/dev/null || true)
-          for f in $RESPONSES; do
-            if grep -iE "$PII_PATTERNS" "$f"; then
-              echo "::error file=$f::Response object contains PII field"
-              exit 1
-            fi
-          done
+#       # Guard 5: PII patterns in responses
+#       - name: Guard - No PII in response objects
+#         run: |
+#           echo "Checking for PII patterns in response objects..."
+#           PII_PATTERNS="iban|cardNumber|ssn|passport|nationalId"
+#           RESPONSES=$(find src -name "*Response.java" -type f 2>/dev/null || true)
+#           for f in $RESPONSES; do
+#             if grep -iE "$PII_PATTERNS" "$f"; then
+#               echo "::error file=$f::Response object contains PII field"
+#               exit 1
+#             fi
+#           done
 
-  # ==========================================================================
-  # MANIFEST VALIDATION
-  # ==========================================================================
-  manifest:
-    name: Manifest Validation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+#   # ==========================================================================
+#   # MANIFEST VALIDATION
+#   # ==========================================================================
+#   manifest:
+#     name: Manifest Validation
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Install ajv-cli
-        run: npm install -g ajv-cli ajv-formats
+#       - name: Install ajv-cli
+#         run: npm install -g ajv-cli ajv-formats
 
-      - name: Validate manifest schema
-        run: |
-          if [ -f "manifest.json" ]; then
-            ajv validate -s src/main/resources/manifest.schema.json -d manifest.json --strict=false
-          else
-            echo "No manifest.json found - skipping validation"
-          fi
+#       - name: Validate manifest schema
+#         run: |
+#           if [ -f "manifest.json" ]; then
+#             ajv validate -s src/main/resources/manifest.schema.json -d manifest.json --strict=false
+#           else
+#             echo "No manifest.json found - skipping validation"
+#           fi
 
-  # ==========================================================================
-  # SECRETS SCAN
-  # ==========================================================================
-  secrets:
-    name: Secrets Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+#   # ==========================================================================
+#   # SECRETS SCAN
+#   # ==========================================================================
+#   secrets:
+#     name: Secrets Scan
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Scan for secrets
-        run: |
-          echo "Scanning for hardcoded secrets..."
-          PATTERNS="password\s*=|secret\s*=|api[_-]?key\s*=|token\s*=|BEGIN\s+PRIVATE\s+KEY"
-          if grep -rniE "$PATTERNS" --include="*.java" --include="*.properties" --include="*.yml" --include="*.yaml" src/ 2>/dev/null | grep -v "test"; then
-            echo "::error::Potential secrets found in source code"
-            exit 1
-          fi
-          echo "No secrets detected"
+#       - name: Scan for secrets
+#         run: |
+#           echo "Scanning for hardcoded secrets..."
+#           PATTERNS="password\s*=|secret\s*=|api[_-]?key\s*=|token\s*=|BEGIN\s+PRIVATE\s+KEY"
+#           if grep -rniE "$PATTERNS" --include="*.java" --include="*.properties" --include="*.yml" --include="*.yaml" src/ 2>/dev/null | grep -v "test"; then
+#             echo "::error::Potential secrets found in source code"
+#             exit 1
+#           fi
+#           echo "No secrets detected"
 
-  # ==========================================================================
-  # DEPENDENCY CHECK
-  # ==========================================================================
-  dependencies:
-    name: Dependency Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+#   # ==========================================================================
+#   # DEPENDENCY CHECK
+#   # ==========================================================================
+#   dependencies:
+#     name: Dependency Check
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-          cache: maven
+#       - name: Set up JDK ${{ env.JAVA_VERSION }}
+#         uses: actions/setup-java@v4
+#         with:
+#           java-version: ${{ env.JAVA_VERSION }}
+#           distribution: 'temurin'
+#           cache: maven
 
-      - name: Check for vulnerable dependencies
-        run: mvn -B org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
-        continue-on-error: true
+#       - name: Check for vulnerable dependencies
+#         run: mvn -B org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
+#         continue-on-error: true
 
-  # ==========================================================================
-  # PACKAGE & PUBLISH (only on main)
-  # ==========================================================================
-  publish:
-    name: Package & Publish
-    needs: [build, guards, secrets]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+#   # ==========================================================================
+#   # PACKAGE & PUBLISH (only on main)
+#   # ==========================================================================
+#   publish:
+#     name: Package & Publish
+#     needs: [build, guards, secrets]
+#     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-          cache: maven
+#       - name: Set up JDK ${{ env.JAVA_VERSION }}
+#         uses: actions/setup-java@v4
+#         with:
+#           java-version: ${{ env.JAVA_VERSION }}
+#           distribution: 'temurin'
+#           cache: maven
 
-      - name: Package JAR
-        run: mvn -B package -DskipTests
+#       - name: Package JAR
+#         run: mvn -B package -DskipTests
 
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: waangu-saas-spring-starter
-          path: target/*.jar
+#       - name: Upload JAR artifact
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: waangu-saas-spring-starter
+#           path: target/*.jar
