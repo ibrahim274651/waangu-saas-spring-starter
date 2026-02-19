@@ -1,6 +1,7 @@
 package com.waangu.platform.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -47,6 +48,7 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
+@ConditionalOnProperty(name = "waangu.security.enabled", havingValue = "true", matchIfMissing = false)
 public class SecurityConfig {
 
         /**

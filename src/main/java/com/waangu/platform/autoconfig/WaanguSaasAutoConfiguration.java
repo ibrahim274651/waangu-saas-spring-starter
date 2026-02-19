@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -53,6 +54,7 @@ public class WaanguSaasAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "tenantContextFilter")
+    @ConditionalOnProperty(name = "waangu.tenant-filter.enabled", havingValue = "true", matchIfMissing = false)
     public TenantContextFilter tenantContextFilter(
             @Value("${waangu.module-id:}") String moduleId) {
         return new TenantContextFilter(moduleId.isBlank() ? null : moduleId);
@@ -60,6 +62,7 @@ public class WaanguSaasAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "tenantContextFilterRegistration")
+    @ConditionalOnProperty(name = "waangu.tenant-filter.enabled", havingValue = "true", matchIfMissing = false)
     public FilterRegistrationBean<TenantContextFilter> tenantContextFilterRegistration(TenantContextFilter filter) {
         FilterRegistrationBean<TenantContextFilter> bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
