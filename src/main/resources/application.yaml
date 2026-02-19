@@ -1,3 +1,201 @@
 spring:
   application:
     name: waangu-saas-spring-starter
+
+  # ==================== Security Configuration ====================
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak JWT issuer URI (adjust for your environment)
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8089/realms/kwim-shop}
+          # JWK Set URI for token validation
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8089/realms/kwim-shop/protocol/openid-connect/certs}
+
+  # ==================== Database Configuration ====================
+  datasource:
+    # Primary datasource (can be overridden by RoutingDataSource for DEDICATED_DB mode)
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/waangu_shared?sslmode=disable}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    
+    # Connection pool settings (HikariCP)
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DB_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_MAX_LIFETIME:1800000}
+      pool-name: WaanguHikariPool
+
+  # ==================== Flyway Migration ====================
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    # Placeholder for tenant-specific migrations
+    placeholders:
+      tenant_id: ${TENANT_ID:default}
+
+  # ==================== Jackson Configuration ====================
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: ${JSON_INDENT:false}
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    time-zone: ${TIMEZONE:Africa/Kinshasa}
+
+  # ==================== Web Configuration ====================
+  web:
+    locale: fr
+    locale-resolver: fixed
+
+# ==================== Waangu Platform Configuration ====================
+waangu:
+  # Module identifier (e.g., "comptabilite", "tresorerie", "analytique")
+  module-id: ${MODULE_ID:}
+  
+  # ==================== Tenant Filter Configuration ====================
+  tenant-filter:
+    # Enable/disable tenant context extraction from JWT
+    enabled: ${TENANT_FILTER_ENABLED:false}
+    # Tenant registry service URL for database resolution
+    registry-url: ${TENANT_REGISTRY_URL:http://localhost:8080}
+    # Cache TTL for tenant database configurations (seconds)
+    cache-ttl: ${TENANT_CACHE_TTL:300}
+  
+  # ==================== Security Headers ====================
+  security:
+    # HTTP Strict Transport Security (HSTS)
+    hsts:
+      enabled: ${HSTS_ENABLED:true}
+      max-age: ${HSTS_MAX_AGE:31536000}
+      include-subdomains: ${HSTS_INCLUDE_SUBDOMAINS:true}
+    
+    # Content Security Policy (CSP)
+    csp:
+      enabled: ${CSP_ENABLED:true}
+      policy: ${CSP_POLICY:default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'}
+    
+    # CORS Configuration
+    cors:
+      enabled: ${CORS_ENABLED:true}
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
+      allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+      exposed-headers: ${CORS_EXPOSED_HEADERS:X-Correlation-Id,X-Tenant-Id}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+      max-age: ${CORS_MAX_AGE:3600}
+  
+  # ==================== Audit Configuration ====================
+  audit:
+    enabled: ${AUDIT_ENABLED:true}
+    # Table name for audit logs
+    table-name: ${AUDIT_TABLE:platform_audit_logs}
+    # Enable hash chain for tamper detection
+    hash-chain-enabled: ${AUDIT_HASH_CHAIN:true}
+    # Retention period in days (0 = keep forever)
+    retention-days: ${AUDIT_RETENTION_DAYS:365}
+  
+  # ==================== Idempotency Configuration ====================
+  idempotency:
+    enabled: ${IDEMPOTENCY_ENABLED:true}
+    # Table name for idempotency keys
+    table-name: ${IDEMPOTENCY_TABLE:platform_idempotency_keys}
+    # TTL for idempotency keys (seconds)
+    ttl: ${IDEMPOTENCY_TTL:86400}
+    # Header name for idempotency key
+    header-name: ${IDEMPOTENCY_HEADER:Idempotency-Key}
+  
+  # ==================== Outbox Configuration ====================
+  outbox:
+    enabled: ${OUTBOX_ENABLED:true}
+    # Table name for outbox events
+    table-name: ${OUTBOX_TABLE:platform_outbox_events}
+    # Polling interval for outbox processor (milliseconds)
+    polling-interval: ${OUTBOX_POLLING_INTERVAL:5000}
+    # Batch size for processing events
+    batch-size: ${OUTBOX_BATCH_SIZE:100}
+    # Max retry attempts for failed events
+    max-retries: ${OUTBOX_MAX_RETRIES:3}
+  
+  # ==================== PII Guard Configuration ====================
+  pii-guard:
+    enabled: ${PII_GUARD_ENABLED:true}
+    # Fields to mask in support context
+    masked-fields: ${PII_MASKED_FIELDS:password,token,secret,apiKey,creditCard,ssn,taxId}
+    # Masking character
+    mask-char: ${PII_MASK_CHAR:*}
+  
+  # ==================== Forbidden Fields Configuration ====================
+  forbidden-fields:
+    enabled: ${FORBIDDEN_FIELDS_ENABLED:true}
+    # Fields that cannot be set via API
+    fields: ${FORBIDDEN_FIELDS:tenantId,tenant_id,createdBy,createdAt,updatedBy,updatedAt,deletedAt,version}
+  
+  # ==================== Correlation ID Configuration ====================
+  correlation:
+    # Header name for correlation ID
+    header-name: ${CORRELATION_HEADER:X-Correlation-Id}
+    # Generate if missing
+    generate-if-missing: ${CORRELATION_GENERATE:true}
+  
+  # ==================== Legal Entity Guard Configuration ====================
+  legal-entity-guard:
+    enabled: ${LEGAL_ENTITY_GUARD_ENABLED:true}
+    # Claim name in JWT for legal entity ID
+    jwt-claim: ${LEGAL_ENTITY_JWT_CLAIM:legal_entity_id}
+  
+  # ==================== Database Session Configuration ====================
+  db-session:
+    # Enable RLS (Row Level Security) session initialization
+    rls-enabled: ${RLS_ENABLED:true}
+    # Session variables to set
+    session-vars:
+      app.current_tenant_id: ${SESSION_VAR_TENANT:}
+      app.current_user_id: ${SESSION_VAR_USER:}
+      app.correlation_id: ${SESSION_VAR_CORRELATION:}
+
+# ==================== Logging Configuration ====================
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.waangu.platform: ${LOG_LEVEL_WAANGU:DEBUG}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
+    org.springframework.web: ${LOG_LEVEL_WEB:INFO}
+    org.hibernate: ${LOG_LEVEL_HIBERNATE:WARN}
+    org.flywaydb: ${LOG_LEVEL_FLYWAY:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID:- } --- [%15.15t] %-40.40logger{39} : %m%n%wEx"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID:- } --- [%15.15t] %-40.40logger{39} : %m%n%wEx"
+
+# ==================== Management & Actuator ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics,prometheus}
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: ${ACTUATOR_HEALTH_DETAILS:when-authorized}
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      module: ${waangu.module-id:unknown}
+
+# ==================== Server Configuration ====================
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: ${ERROR_INCLUDE_STACKTRACE:never}
+    include-exception: false
